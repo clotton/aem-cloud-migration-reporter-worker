@@ -1,4 +1,4 @@
-name = "migrations-worker"
+name = 'aem-cloud-migration-reporter-worker'
 main = "src/index.js"
 compatibility_date = "2025-10-24"
 
