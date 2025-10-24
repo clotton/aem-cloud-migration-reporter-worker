@@ -1,0 +1,6 @@
+name = "migrations-worker"
+main = "src/index.js"
+compatibility_date = "2025-10-24"
+
+[vars]
+API_TOKEN = "your_api_token_here"
