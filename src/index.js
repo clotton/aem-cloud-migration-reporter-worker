@@ -7,17 +7,20 @@ export default {
                 "https://cq-aem-cloud-adoption-query-service-deploy-ethos12-102c74.cloud.adobe.io/projectCount",
                 {
                     headers: {
-                        "Authorization": `Bearer ${apiKey}`,
+                        "x-api-key": apiKey,
                         "Accept": "application/json"
                     }
                 }
             );
 
             if (!response.ok) {
-                return new Response("Query service returned an error", { status: 502 });
+                return new Response(
+                    `Query service returned an error: ${response.status}`,
+                    { status: 502 }
+                );
             }
 
-            const data = await response.text(); // Or response.json() if the endpoint returns JSON
+            const data = await response.text(); // or response.json() if you want JSON
             return new Response(data, {
                 status: 200,
                 headers: { "Content-Type": "application/json" },
