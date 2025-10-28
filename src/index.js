@@ -2,16 +2,43 @@ export default {
     async fetch(request, env) {
         try {
             const apiKey = env.QUERY_SERVICE_API_KEY;
-            const authToken = env.AUTH_TOKEN;
+            const imsClientId = env.IMS_CLIENT_ID;
+            const imsClientSecret = env.IMS_CLIENT_SECRET;
+            const imsCode = env.IMS_CLIENT_CODE;
+            const imsTokenUrl = 'https://ims-na1.adobelogin.com/ims/token/v1';
 
+            // 1️⃣ Call IMS to get an access token
+            const imsResponse = await fetch(imsTokenUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'User-Agent': 'insomnia/10.1.1-adobe',
+                },
+                body: new URLSearchParams({
+                    grant_type: 'authorization_code',
+                    client_id: imsClientId,
+                    client_secret: imsClientSecret,
+                    code: imsCode,
+                })
+            });
+
+            if (!imsResponse.ok) {
+                return new Response(`IMS auth failed: ${imsResponse.status}`, { status: 502 });
+            }
+
+            const imsData = await imsResponse.json();
+            const authToken = imsData.access_token;
+
+            // 2️⃣ Call the query service using the token
             const response = await fetch(
                 "https://cq-aem-cloud-adoption-query-service-deploy-ethos12-102c74.cloud.adobe.io/projectCount",
                 {
                     headers: {
                         "x-api-key": apiKey,
                         "Accept": "application/json",
-                        "Authorization":  authToken                    }
+                        "Authorization": authToken
                     }
+                }
             );
 
             if (!response.ok) {
@@ -21,7 +48,7 @@ export default {
                 );
             }
 
-            const data = await response.text(); // or response.json() if you want JSON
+            const data = await response.text();
             return new Response(data, {
                 status: 200,
                 headers: { "Content-Type": "application/json" },
