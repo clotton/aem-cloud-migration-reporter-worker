@@ -26,7 +26,9 @@ export default {
                 return new Response(`IMS auth failed: ${imsResponse.status}`, { status: 502 });
             }
 
-            const imsData = await imsResponse.json();
+            const text = await imsResponse.text();
+            const imsData = JSON.parse(text);
+
             const authToken = imsData.access_token;
 
             // 2️⃣ Call the query service using the token
