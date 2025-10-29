@@ -33,7 +33,7 @@ export default {
 
             // 2️⃣ Call the query service using the token
             const response = await fetch(
-                "https://cq-aem-cloud-adoption-query-service-deploy-ethos12-102c74.cloud.adobe.io/projectCount",
+                "https://cq-aem-cloud-adoption-query-service-deploy-ethos12-102c74.cloud.adobe.io/ingestionsLast30Days",
                 {
                     headers: {
                         "x-api-key": apiKey,
