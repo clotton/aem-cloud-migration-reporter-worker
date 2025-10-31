@@ -65,12 +65,59 @@ export default {
                 );
             }
 
-            const data = await queryResponse.text();
-            return new Response(data, {
+            // Read response as text so we can preserve any original formatting. If it's JSON,
+            // attempt to parse and compute a tally of ingestions by summing lengths of arrays
+            // found anywhere in the JSON structure.
+            const text = await queryResponse.text();
+
+            // Compute tally if response is JSON
+            let tallyHeader = {};
+            try {
+                const json = JSON.parse(text);
+
+                // Recursively find arrays and sum their lengths. This is intentionally
+                // permissive: it will count any arrays present in the response. If the
+                // service returns a top-level array of ingestions this will be its length.
+                const computeTally = (obj) => {
+                    let count = 0;
+                    const seen = new WeakSet();
+                    const recurse = (value) => {
+                        if (!value || (typeof value !== 'object')) return;
+                        if (seen.has(value)) return; // avoid cycles
+                        seen.add(value);
+
+                        if (Array.isArray(value)) {
+                            count += value.length;
+                            // also recurse into array elements in case of nested arrays/objects
+                            for (const el of value) recurse(el);
+                        } else {
+                            for (const k of Object.keys(value)) {
+                                recurse(value[k]);
+                            }
+                        }
+                    };
+                    recurse(obj);
+                    return count;
+                };
+
+                const tally = computeTally(json);
+                if (tally > 0) {
+                    tallyHeader['X-Ingestions-Count'] = String(tally);
+                    console.log('ingestions count:', tally);
+                } else {
+                    console.log('ingestions count: 0 (no arrays found)');
+                }
+            } catch (e) {
+                // Not JSON or parse failed — don't set tally header.
+                console.log('query service response not JSON, skipping tally');
+            }
+
+            return new Response(text, {
                 status: 200,
                 headers: {
                     "Content-Type": "application/json",
                     ...corsHeaders,
+                    ...tallyHeader,
                 },
             });
         } catch (err) {
