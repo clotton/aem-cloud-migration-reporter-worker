@@ -52,7 +52,7 @@ export default {
             const authToken = imsData.access_token;
 
             // 2️⃣ Query service
-            const queryResponse = await fetch(`${BASE_URL}/customerMigrationInfo30Days`, {
+            const queryResponse = await fetch(`${BASE_URL}/customerMigrationInfo`, {
                 headers: {
                     "x-api-key": apiKey,
                     Accept: "application/json",
