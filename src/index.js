@@ -1,3 +1,5 @@
+import { DateRange } from "./DateRange";
+
 let cachedToken = null;
 let tokenExpiry = 0; // epoch millis when token expires
 
@@ -19,6 +21,14 @@ export default {
                 // ✅ Handle preflight CORS request
                 return new Response(null, { headers: corsHeaders });
             }
+
+            const url = new URL(request.url);
+            const dateRangeParam = url.searchParams.get('dateRange') || DateRange.LAST_YEAR;
+
+            // Validate the dateRange parameter
+            const dateRange = Object.values(DateRange).includes(dateRangeParam)
+                ? dateRangeParam
+                : DateRange.LAST_MONTH;
 
             const apiKey = env.QUERY_SERVICE_API_KEY;
             const imsClientId = env.IMS_CLIENT_ID;
@@ -51,8 +61,12 @@ export default {
             const imsData = await imsResponse.json();
             const authToken = imsData.access_token;
 
+            // Construct URL with dateRange query param
+            const queryUrl = new URL(`${BASE_URL}/customerMigrationInfo`);
+            queryUrl.searchParams.set("dateRange", dateRange);
+
             // 2️⃣ Query service
-            const queryResponse = await fetch(`${BASE_URL}/customerMigrationInfo`, {
+            const queryResponse = await fetch(queryUrl, {
                 headers: {
                     "x-api-key": apiKey,
                     Accept: "application/json",
