@@ -23,7 +23,7 @@ export default {
             }
 
             const url = new URL(request.url);
-            const dateRangeParam = url.searchParams.get('dateRange') || DateRange.LAST_YEAR;
+            const dateRangeParam = url.searchParams.get('dateRange') || DateRange.LAST_1_MONTH;
 
             // Validate the dateRange parameter
             const dateRange = Object.values(DateRange).includes(dateRangeParam)
