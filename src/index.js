@@ -28,7 +28,7 @@ export default {
             // Validate the dateRange parameter
             const dateRange = Object.values(DateRange).includes(dateRangeParam)
                 ? dateRangeParam
-                : DateRange.LAST_MONTH;
+                : DateRange.LAST_1_MONTH;
 
             const apiKey = env.QUERY_SERVICE_API_KEY;
             const imsClientId = env.IMS_CLIENT_ID;
