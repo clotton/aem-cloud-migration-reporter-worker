@@ -24,6 +24,9 @@ export default {
 
             const url = new URL(request.url);
             const dateRangeParam = url.searchParams.get('dateRange') || DateRange.LAST_1_MONTH;
+            const searchBy = url.searchParams.get("searchBy") || '';
+
+            await logEvent(`👤 *${searchBy}* searched migrations with dateRange: ${dateRangeParam}`, env);
 
             // Validate the dateRange parameter
             const dateRange = Object.values(DateRange).includes(dateRangeParam)
@@ -103,33 +106,11 @@ export default {
     },
 };
 
-// ♻️ Helper: Get or reuse IMS token
-async function getValidToken(tokenUrl, clientId, clientSecret, code) {
-    const now = Date.now();
-    if (cachedToken && now < tokenExpiry - 60000) {
-        return cachedToken;
-    }
-
-    const imsResponse = await fetch(tokenUrl, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "User-Agent": "adobe-worker",
-        },
-        body: new URLSearchParams({
-            grant_type: "authorization_code",
-            client_id: clientId,
-            client_secret: clientSecret,
-            code,
-        }),
+async function logEvent(message, env) {
+    const webhookUrl = env.SLACK_WEBHOOK_URL;
+    await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(message),
     });
-
-    if (!imsResponse.ok) {
-        throw new Error(`IMS auth failed: ${imsResponse.status}`);
-    }
-
-    const imsData = await imsResponse.json();
-    cachedToken = imsData.access_token;
-    tokenExpiry = now + (imsData.expires_in || 3600) * 1000; // default 1 hour
-    return cachedToken;
 }
