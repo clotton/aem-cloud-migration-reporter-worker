@@ -108,9 +108,19 @@ export default {
 
 async function logEvent(message, env) {
     const webhookUrl = env.SLACK_WEBHOOK_URL;
-    await fetch(webhookUrl, {
+
+    const payload = {
+        text: message
+    };
+
+    const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(message),
+        body: JSON.stringify(payload),
     });
+
+    if (!response.ok) {
+        console.error('Slack webhook error:', await response.text());
+    }
 }
+
